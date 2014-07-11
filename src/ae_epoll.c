@@ -31,7 +31,7 @@
 
 #include <sys/epoll.h>
 
-typedef struct aeApiState {
+typedef struct aeApiState { //take care of the epoll resource state
     int epfd;
     struct epoll_event *events;
 } aeApiState;
@@ -72,7 +72,7 @@ static void aeApiFree(aeEventLoop *eventLoop) {
 
 static int aeApiAddEvent(aeEventLoop *eventLoop, int fd, int mask) {
     aeApiState *state = eventLoop->apidata;
-    struct epoll_event ee;
+    struct epoll_event ee; //TODO learn the detail of epoll_event
     /* If the fd was already monitored for some event, we need a MOD
      * operation. Otherwise we need an ADD operation. */
     int op = eventLoop->events[fd].mask == AE_NONE ?
