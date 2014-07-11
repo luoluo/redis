@@ -60,7 +60,7 @@ typedef void aeBeforeSleepProc(struct aeEventLoop *eventLoop);
 
 /* File event structure */
 typedef struct aeFileEvent {
-    int mask; /* one of AE_(READABLE|WRITABLE) */
+    int mask; /* one of AE_(READABLE|WRITABLE) */ /* identify the type */
     aeFileProc *rfileProc;
     aeFileProc *wfileProc;
     void *clientData;
@@ -74,7 +74,7 @@ typedef struct aeTimeEvent {
     aeTimeProc *timeProc;
     aeEventFinalizerProc *finalizerProc;
     void *clientData;
-    struct aeTimeEvent *next;
+    struct aeTimeEvent *next; /* a list */
 } aeTimeEvent;
 
 /* A fired event */

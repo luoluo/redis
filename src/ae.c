@@ -174,10 +174,10 @@ int aeGetFileEvents(aeEventLoop *eventLoop, int fd) {
     if (fd >= eventLoop->setsize) return 0;
     aeFileEvent *fe = &eventLoop->events[fd];
 
-    return fe->mask;
+    return fe->mask; /* return the fileEvent type */ /* AE_READABLE = 1 AE_WRITABLE = 2 */
 }
 
-static void aeGetTime(long *seconds, long *milliseconds)
+static void aeGetTime(long *seconds, long *milliseconds) /* time has two part second, millisecond */
 {
     struct timeval tv;
 
@@ -204,18 +204,18 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
         aeTimeProc *proc, void *clientData,
         aeEventFinalizerProc *finalizerProc)
 {
-    long long id = eventLoop->timeEventNextId++;
+    long long id = eventLoop->timeEventNextId++; /* take care of event number ? */
     aeTimeEvent *te;
 
     te = zmalloc(sizeof(*te));
     if (te == NULL) return AE_ERR;
-    te->id = id;
+    te->id = id; /* identify the time_event */
     aeAddMillisecondsToNow(milliseconds,&te->when_sec,&te->when_ms);
     te->timeProc = proc;
     te->finalizerProc = finalizerProc;
     te->clientData = clientData;
-    te->next = eventLoop->timeEventHead;
-    eventLoop->timeEventHead = te;
+    te->next = eventLoop->timeEventHead; /* what does this do ?? all the event knows the next time event to execute? */
+    eventLoop->timeEventHead = te; /* is this a stack ??  list add to head */
     return id;
 }
 
@@ -254,7 +254,7 @@ int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id)
  */
 static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop)
 {
-    aeTimeEvent *te = eventLoop->timeEventHead;
+    aeTimeEvent *te = eventLoop->timeEventHead; //TODO use better data structure
     aeTimeEvent *nearest = NULL;
 
     while(te) {
@@ -292,7 +292,7 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
     eventLoop->lastTime = now;
 
     te = eventLoop->timeEventHead;
-    maxId = eventLoop->timeEventNextId-1;
+    maxId = eventLoop->timeEventNextId-1; /* ?? */
     while(te) {
         long now_sec, now_ms;
         long long id;
