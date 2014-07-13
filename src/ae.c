@@ -158,7 +158,7 @@ void aeDeleteFileEvent(aeEventLoop *eventLoop, int fd, int mask)
     aeFileEvent *fe = &eventLoop->events[fd];
 
     if (fe->mask == AE_NONE) return;
-    fe->mask = fe->mask & (~mask);
+    fe->mask = fe->mask & (~mask); /* set all to zero */
     if (fd == eventLoop->maxfd && fe->mask == AE_NONE) {
         /* Update the max fd */
         int j;
@@ -292,18 +292,18 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
     eventLoop->lastTime = now;
 
     te = eventLoop->timeEventHead;
-    maxId = eventLoop->timeEventNextId-1; /* ?? */
+    maxId = eventLoop->timeEventNextId-1; /* set the limit execute */
     while(te) {
         long now_sec, now_ms;
         long long id;
 
         if (te->id > maxId) {
-            te = te->next;
+            te = te->next; /* only execute for the limit events, Id as a flag to indefy whether a event is handled */
             continue;
         }
         aeGetTime(&now_sec, &now_ms);
         if (now_sec > te->when_sec ||
-            (now_sec == te->when_sec && now_ms >= te->when_ms))
+            (now_sec == te->when_sec && now_ms >= te->when_ms)) /* only handle the time reached events */
         {
             int retval;
 
@@ -324,7 +324,7 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
              * deletion (putting references to the nodes to delete into
              * another linked list). */
             if (retval != AE_NOMORE) {
-                aeAddMillisecondsToNow(retval,&te->when_sec,&te->when_ms);
+                aeAddMillisecondsToNow(retval,&te->when_sec,&te->when_ms); /* if not done, prepare to process later */
             } else {
                 aeDeleteTimeEvent(eventLoop, id);
             }
@@ -366,7 +366,7 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
         aeTimeEvent *shortest = NULL;
         struct timeval tv, *tvp;
 
-        if (flags & AE_TIME_EVENTS && !(flags & AE_DONT_WAIT))
+        if (flags & AE_TIME_EVENTS && !(flags & AE_DONT_WAIT)) /* why repeat ? */
             shortest = aeSearchNearestTimer(eventLoop);
         if (shortest) {
             long now_sec, now_ms;
